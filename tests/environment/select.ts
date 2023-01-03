@@ -23,3 +23,26 @@ test('events are not guaranteed to be dispatched on same microtask in browser', 
 
   await DTL.waitFor(() => expect(onSelect).toBeCalledTimes(1))
 })
+
+test('`HTMLInputElement.focus()` in contenteditable changes `Selection` in browser', () => {
+  const {element, xpathNode} = render<HTMLInputElement>(
+    `<div contenteditable="true"><input/></div><span></span>`,
+    {
+      selection: {
+        focusNode: '//span',
+      },
+    },
+  )
+
+  expect(element.ownerDocument.getSelection()).toHaveProperty(
+    'anchorNode',
+    xpathNode('//span'),
+  )
+
+  xpathNode('//input').focus()
+
+  expect(element.ownerDocument.getSelection()).toHaveProperty(
+    'anchorNode',
+    isJsdomEnv() ? xpathNode('//span') : element,
+  )
+})
